@@ -1,0 +1,12 @@
+<resources>
+    <string name="app_name">Popular Movies</string>
+    <string name="title_activity_movie_detail">Movie Detail</string>
+    <string name="error_message">An error has occurred</string>
+    <string name="sort">Sort By</string>
+
+    <string-array name="sortBy">
+        <item>Popularity</item>
+        <item>Top Rated</item>
+    </string-array>
+
+</resources>
