@@ -1,20 +1,27 @@
 package com.example.android.popularmovies2.Model;
 
+import com.google.gson.annotations.SerializedName;
+
 import java.io.Serializable;
 
 @SuppressWarnings("serial")
-public class MoviesData implements Serializable {
+public class MovieData implements Serializable {
 
+    @SerializedName("title")
     private String title;
+    @SerializedName("release_date")
     private String releaseDate;
+    @SerializedName("vote_average")
     private String voteAverage;
+    @SerializedName("overview")
     private String overview;
+    @SerializedName("poster_path")
     private String posterPath;
 
-    public MoviesData() {
+    public MovieData() {
         /* Empty Constructor */
     }
-    public MoviesData(String title, String releaseDate, String voteAverage, String overview, String posterPath) {
+    public MovieData(String title, String releaseDate, String voteAverage, String overview, String posterPath) {
         this.title = title;
         this.releaseDate = releaseDate;
         this.voteAverage = voteAverage;

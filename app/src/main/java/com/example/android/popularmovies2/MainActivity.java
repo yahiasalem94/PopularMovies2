@@ -2,8 +2,6 @@ package com.example.android.popularmovies2;
 
 import android.content.Context;
 import android.content.Intent;
-import android.os.AsyncTask;
-import android.support.v4.view.MenuItemCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.support.v7.widget.GridLayoutManager;
@@ -18,15 +16,19 @@ import android.widget.ArrayAdapter;
 import android.widget.ProgressBar;
 import android.widget.Spinner;
 import android.widget.TextView;
-import android.widget.Toast;
 
 
-import com.example.android.popularmovies2.Model.MoviesData;
+import com.example.android.popularmovies2.Model.MovieData;
+import com.example.android.popularmovies2.Model.MoviesList;
+import com.example.android.popularmovies2.Utils.ApiInterface;
 import com.example.android.popularmovies2.Utils.NetworkUtils;
-import com.example.android.popularmovies2.Utils.OpenMoviesJsonUtils;
 
-import java.net.URL;
+import java.io.IOException;
 import java.util.ArrayList;
+
+import retrofit2.Call;
+import retrofit2.Callback;
+import retrofit2.Response;
 
 
 public class MainActivity extends AppCompatActivity implements MoviesAdapter.MoviesAdapterOnClickHandler {
@@ -37,10 +39,13 @@ public class MainActivity extends AppCompatActivity implements MoviesAdapter.Mov
     private TextView mErrorMessageDisplay;
     private ProgressBar mLoadingIndicator;
 
-    private ArrayList<MoviesData> itemList;
+    private ArrayList<MovieData> movies;
     private boolean isConnected = true;
 
+    private ApiInterface apiService;
+
     private static final String TAG = MainActivity.class.getSimpleName();
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -63,7 +68,11 @@ public class MainActivity extends AppCompatActivity implements MoviesAdapter.Mov
 
         mLoadingIndicator = findViewById(R.id.pb_loading_indicator);
 
+        apiService = NetworkUtils.getRetrofitInstance().create(ApiInterface.class);
+
         loadData(0);
+
+
     }
 
     public static int calculateNoOfColumns(Context context) {
@@ -78,7 +87,64 @@ public class MainActivity extends AppCompatActivity implements MoviesAdapter.Mov
 
     private void loadData(int i) {
         showDataView();
-        new FetchMoviesTask().execute(i);
+
+        mLoadingIndicator.setVisibility(View.VISIBLE);
+
+        if ( i == 0 ) {
+            Call<MoviesList> call = apiService.getTopRatedMovies(Constants.API_KEY);
+
+            call.enqueue(new Callback<MoviesList>() {
+                @Override
+                public void onResponse(Call<MoviesList> call, Response<MoviesList> response) {
+
+                    movies = (ArrayList) response.body().getResults();
+                    mLoadingIndicator.setVisibility(View.INVISIBLE);
+                    moviesAdapter.setMoviesData(movies);
+                    Log.d(TAG, "Number of movies received: " + movies.size());
+                }
+
+                @Override
+                public void onFailure(Call<MoviesList> call, Throwable t) {
+
+                    mLoadingIndicator.setVisibility(View.INVISIBLE);
+
+                    if ( t instanceof IOException) {
+                        isConnected = false;
+                    }
+
+                    showErrorMessage(isConnected);
+
+                }
+            });
+        } else if ( i == 1 ) {
+
+            Call<MoviesList> call = apiService.getPopularMovies(Constants.API_KEY);
+            call.enqueue(new Callback<MoviesList>() {
+                @Override
+                public void onResponse(Call<MoviesList> call, Response<MoviesList> response) {
+
+                    movies = (ArrayList) response.body().getResults();
+
+                    mLoadingIndicator.setVisibility(View.INVISIBLE);
+
+                    moviesAdapter.setMoviesData(movies);
+                    Log.d(TAG, "Number of movies received: " + movies.size());
+                }
+
+                @Override
+                public void onFailure(Call<MoviesList> call, Throwable t) {
+
+                    mLoadingIndicator.setVisibility(View.INVISIBLE);
+
+                    if ( t instanceof IOException) {
+                        isConnected = false;
+                    }
+
+                    showErrorMessage(isConnected);
+
+                }
+            });
+        }
 
     }
 
@@ -93,12 +159,12 @@ public class MainActivity extends AppCompatActivity implements MoviesAdapter.Mov
     public void onClick(int position) {
 
         Intent intent = new Intent(this, MovieDetail.class);
-        intent.putExtra(Constants.INTENT_TAG, itemList.get(position));
+        intent.putExtra(Constants.INTENT_TAG, movies.get(position));
         startActivity(intent);
     }
 
 
-    private void showErrorMessage() {
+    private void showErrorMessage(boolean isConnected) {
 
         if (isConnected) {
             /* First, hide the currently visible data */
@@ -111,60 +177,6 @@ public class MainActivity extends AppCompatActivity implements MoviesAdapter.Mov
             /* Then, show the error */
             mErrorMessageDisplay.setText("No Internet Connection");
             mErrorMessageDisplay.setVisibility(View.VISIBLE);
-        }
-    }
-
-    public class FetchMoviesTask extends AsyncTask<Integer, Void, ArrayList<MoviesData>> {
-
-        @Override
-        protected void onPreExecute() {
-            super.onPreExecute();
-            mLoadingIndicator.setVisibility(View.VISIBLE);
-        }
-
-        @Override
-        protected ArrayList<MoviesData> doInBackground(Integer... params) {
-
-            /* If there's no zip code, there's nothing to look up. */
-            if (params.length == 0) {
-                return null;
-            }
-
-            if ( NetworkUtils.networkStatus(MainActivity.this) ) {
-
-                int urlNumber = params[0];
-                URL requestUrl = NetworkUtils.buildUrl(urlNumber);
-
-                try {
-                    String jsonResponse = NetworkUtils
-                            .getResponseFromHttpUrl(requestUrl);
-
-                    itemList = OpenMoviesJsonUtils
-                            .fetchMoviesDetailsFromJson(MainActivity.this, jsonResponse);
-
-                    return itemList;
-
-                } catch (Exception e) {
-                    e.printStackTrace();
-                    return null;
-                }
-            } else {
-                isConnected = false;
-                return null;
-            }
-        }
-
-        @Override
-        protected void onPostExecute(ArrayList<MoviesData> moviesData) {
-            mLoadingIndicator.setVisibility(View.INVISIBLE);
-            if (moviesData != null) {
-                showDataView();
-                moviesAdapter.setMoviesData(moviesData);
-            } else if (isConnected == false ){
-                showErrorMessage();
-            } else {
-                showErrorMessage();
-            }
         }
     }
 

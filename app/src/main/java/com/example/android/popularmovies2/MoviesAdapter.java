@@ -9,7 +9,7 @@ import android.view.View.OnClickListener;
 import android.view.ViewGroup;
 import android.widget.ImageView;
 
-import com.example.android.popularmovies2.Model.MoviesData;
+import com.example.android.popularmovies2.Model.MovieData;
 import com.squareup.picasso.Picasso;
 
 import java.util.ArrayList;
@@ -17,7 +17,7 @@ import java.util.ArrayList;
 
 public class MoviesAdapter extends RecyclerView.Adapter<MoviesAdapter.MoviesAdapterViewHolder> {
 
-    private ArrayList<MoviesData> mMoviesData;
+    private ArrayList<MovieData> mMoviesData;
     private final MoviesAdapterOnClickHandler mClickHandler;
     private Context context;
 
@@ -28,6 +28,7 @@ public class MoviesAdapter extends RecyclerView.Adapter<MoviesAdapter.MoviesAdap
 
 
     public MoviesAdapter(MoviesAdapterOnClickHandler clickHandler, Context context) {
+        Log.d("MoviesAdapter", clickHandler.toString());
         mClickHandler = clickHandler;
         this.context = context;
     }
@@ -43,6 +44,7 @@ public class MoviesAdapter extends RecyclerView.Adapter<MoviesAdapter.MoviesAdap
 
         @Override
         public void onClick(View v) {
+            Log.e("MoviesAdapter", getAdapterPosition()+"");
             mClickHandler.onClick(getAdapterPosition());
         }
     }
@@ -69,7 +71,7 @@ public class MoviesAdapter extends RecyclerView.Adapter<MoviesAdapter.MoviesAdap
         return mMoviesData.size();
     }
 
-    public void setMoviesData(ArrayList<MoviesData> movieData) {
+    public void setMoviesData(ArrayList<MovieData> movieData) {
         mMoviesData = movieData;
         notifyDataSetChanged();
     }

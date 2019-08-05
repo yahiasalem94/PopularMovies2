@@ -11,7 +11,7 @@ import android.view.View;
 import android.widget.ImageView;
 import android.widget.TextView;
 
-import com.example.android.popularmovies2.Model.MoviesData;
+import com.example.android.popularmovies2.Model.MovieData;
 import com.squareup.picasso.Picasso;
 
 public class MovieDetail extends AppCompatActivity {
@@ -36,7 +36,7 @@ public class MovieDetail extends AppCompatActivity {
         overview = findViewById(R.id.overview);
 
         Intent intent = getIntent();
-        MoviesData movie = (MoviesData)intent.getSerializableExtra(Constants.INTENT_TAG);
+        MovieData movie = (MovieData)intent.getSerializableExtra(Constants.INTENT_TAG);
 
         if (movie != null) {
 

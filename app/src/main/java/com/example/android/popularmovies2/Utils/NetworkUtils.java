@@ -16,6 +16,9 @@ import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.Scanner;
 
+import retrofit2.Retrofit;
+import retrofit2.converter.gson.GsonConverterFactory;
+
 public final class NetworkUtils {
 
     private static final String TAG = "NetworkUtils";
@@ -25,54 +28,15 @@ public final class NetworkUtils {
     /* The format we want our API to return */
     private static final String format = "json";
 
-    public static URL buildUrl(int urlNumber) {
-        Uri builtUri = null;
+    private static Retrofit retrofit = null;
 
-        if ( urlNumber == 0 ) {
-            builtUri = Uri.parse(Constants.POPULAR_MOVIES).buildUpon()
+    public static Retrofit getRetrofitInstance() {
+        if (retrofit == null) {
+            retrofit = new retrofit2.Retrofit.Builder()
+                    .baseUrl(Constants.BASE_URL)
+                    .addConverterFactory(GsonConverterFactory.create())
                     .build();
-        } else if ( urlNumber == 1 ) {
-            builtUri = Uri.parse(Constants.TOP_RATED_MOVIES).buildUpon()
-                    .build();
         }
-
-        URL url = null;
-        try {
-            url = new URL(builtUri.toString());
-        } catch (MalformedURLException e) {
-            e.printStackTrace();
-        }
-
-        return url;
-    }
-
-
-    public static String getResponseFromHttpUrl(URL url) throws IOException {
-        HttpURLConnection urlConnection = (HttpURLConnection) url.openConnection();
-        try {
-            InputStream in = urlConnection.getInputStream();
-
-            Scanner scanner = new Scanner(in);
-            scanner.useDelimiter("\\A");
-
-            boolean hasInput = scanner.hasNext();
-            if (hasInput) {
-                return scanner.next();
-            } else {
-                return null;
-            }
-        } finally {
-            urlConnection.disconnect();
-        }
-    }
-
-    public static Boolean networkStatus(Context context){
-        ConnectivityManager manager = (ConnectivityManager)
-                context.getSystemService(Context.CONNECTIVITY_SERVICE);
-        NetworkInfo networkInfo = manager.getActiveNetworkInfo();
-        if (networkInfo != null && networkInfo.isConnected()){
-            return true;
-        }
-        return false;
+        return retrofit;
     }
 }
