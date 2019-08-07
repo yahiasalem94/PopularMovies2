@@ -1,7 +1,11 @@
 package com.example.android.popularmovies2.Utils;
 
+import com.example.android.popularmovies2.Model.MovieData;
 import com.example.android.popularmovies2.Model.MoviesList;
+import com.example.android.popularmovies2.Model.Trailer;
+import com.example.android.popularmovies2.Model.TrailersList;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import retrofit2.Call;
@@ -18,6 +22,6 @@ public interface ApiInterface {
     @GET("movie/popular")
     Call<MoviesList> getPopularMovies(@Query("api_key") String apiKey);
 
-//    @GET("movie/{id}")
-//    Call<List<MoviesData>> getMovieDetails(@Path("id") int id, @Query("api_key") String apiKey);
+    @GET("movie/{id}/videos")
+    Call<TrailersList> getTrailer(@Path("id") int id, @Query("api_key") String apiKey);
 }

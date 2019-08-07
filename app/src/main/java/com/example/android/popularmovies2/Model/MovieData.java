@@ -1,10 +1,15 @@
 package com.example.android.popularmovies2.Model;
 
+import android.arch.persistence.room.Entity;
+import android.arch.persistence.room.Ignore;
+import android.arch.persistence.room.PrimaryKey;
+
 import com.google.gson.annotations.SerializedName;
 
 import java.io.Serializable;
 
 @SuppressWarnings("serial")
+@Entity(tableName = "moviesData")
 public class MovieData implements Serializable {
 
     @SerializedName("title")
@@ -18,15 +23,21 @@ public class MovieData implements Serializable {
     @SerializedName("poster_path")
     private String posterPath;
 
+    @PrimaryKey
+    @SerializedName("id")
+    private Integer id;
+
+    @Ignore
     public MovieData() {
         /* Empty Constructor */
     }
-    public MovieData(String title, String releaseDate, String voteAverage, String overview, String posterPath) {
+    public MovieData(String title, String releaseDate, String voteAverage, String overview, String posterPath, Integer id) {
         this.title = title;
         this.releaseDate = releaseDate;
         this.voteAverage = voteAverage;
         this.overview = overview;
         this.posterPath = posterPath;
+        this.id = id;
     }
 
     public String getTitle() {
@@ -67,5 +78,13 @@ public class MovieData implements Serializable {
 
     public void setPosterPath(String posterPath) {
         this.posterPath = posterPath;
+    }
+
+    public Integer getId() {
+        return id;
+    }
+
+    public void setId(Integer id) {
+        this.id = id;
     }
 }

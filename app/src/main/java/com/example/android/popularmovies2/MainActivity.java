@@ -1,7 +1,10 @@
 package com.example.android.popularmovies2;
 
+import android.arch.lifecycle.LiveData;
+import android.arch.lifecycle.Observer;
 import android.content.Context;
 import android.content.Intent;
+import android.support.annotation.Nullable;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.support.v7.widget.GridLayoutManager;
@@ -18,6 +21,7 @@ import android.widget.Spinner;
 import android.widget.TextView;
 
 
+import com.example.android.popularmovies2.Database.AppDatabase;
 import com.example.android.popularmovies2.Model.MovieData;
 import com.example.android.popularmovies2.Model.MoviesList;
 import com.example.android.popularmovies2.Utils.ApiInterface;
@@ -25,6 +29,7 @@ import com.example.android.popularmovies2.Utils.NetworkUtils;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.List;
 
 import retrofit2.Call;
 import retrofit2.Callback;
@@ -39,10 +44,16 @@ public class MainActivity extends AppCompatActivity implements MoviesAdapter.Mov
     private TextView mErrorMessageDisplay;
     private ProgressBar mLoadingIndicator;
 
-    private ArrayList<MovieData> movies;
     private boolean isConnected = true;
 
+    private boolean isFavorites = false;
+
+
     private ApiInterface apiService;
+
+    private ArrayList<MovieData> movies;
+
+    private AppDatabase mDb;
 
     private static final String TAG = MainActivity.class.getSimpleName();
 
@@ -69,6 +80,8 @@ public class MainActivity extends AppCompatActivity implements MoviesAdapter.Mov
         mLoadingIndicator = findViewById(R.id.pb_loading_indicator);
 
         apiService = NetworkUtils.getRetrofitInstance().create(ApiInterface.class);
+
+        mDb = AppDatabase.getInstance(getApplicationContext());
 
         loadData(0);
 
@@ -100,7 +113,7 @@ public class MainActivity extends AppCompatActivity implements MoviesAdapter.Mov
                     movies = (ArrayList) response.body().getResults();
                     mLoadingIndicator.setVisibility(View.INVISIBLE);
                     moviesAdapter.setMoviesData(movies);
-                    Log.d(TAG, "Number of movies received: " + movies.size());
+                    Log.d(TAG, "Movie Id: " + movies.get(1).getId());
                 }
 
                 @Override
@@ -123,7 +136,7 @@ public class MainActivity extends AppCompatActivity implements MoviesAdapter.Mov
                 @Override
                 public void onResponse(Call<MoviesList> call, Response<MoviesList> response) {
 
-                    movies = (ArrayList) response.body().getResults();
+                     ArrayList<MovieData> movies = (ArrayList) response.body().getResults();
 
                     mLoadingIndicator.setVisibility(View.INVISIBLE);
 
@@ -144,8 +157,26 @@ public class MainActivity extends AppCompatActivity implements MoviesAdapter.Mov
 
                 }
             });
+        } else if (i == 2) {
+            retrieveTasks();
         }
 
+    }
+
+    private void retrieveTasks() {
+        Log.d(TAG, "Actively retrieving the tasks from the DataBase");
+        LiveData<List<MovieData>> favorites = mDb.movieDao().loadAllMovies();
+
+        favorites.observe(this, new Observer<List<MovieData>>() {
+            @Override
+            public void onChanged(@Nullable List<MovieData> favorites) {
+                Log.d(TAG, "Receiving database update from LiveData");
+                if (isFavorites) {
+                    mLoadingIndicator.setVisibility(View.INVISIBLE);
+                    moviesAdapter.setMoviesData((ArrayList)favorites);
+                }
+            }
+        });
     }
 
     private void showDataView() {
@@ -195,7 +226,8 @@ public class MainActivity extends AppCompatActivity implements MoviesAdapter.Mov
         spinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
             @Override
             public void onItemSelected(AdapterView<?> adapterView, View view, int i, long l) {
-                   loadData(i);
+                isFavorites = (i == 2) ? true : false;
+                loadData(i);
             }
 
             @Override

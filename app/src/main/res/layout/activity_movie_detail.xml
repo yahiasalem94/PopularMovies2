@@ -63,6 +63,7 @@
             <Button
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
+                android:id="@+id/addToFavorite"
                 android:layout_toRightOf="@+id/posterImageview"
                 android:layout_below="@+id/ratingTextview"
                 android:layout_marginTop="35dp"
@@ -82,6 +83,22 @@
             android:layout_marginTop="15dp"
             android:layout_marginBottom="10dp"
             android:textSize="18sp"/>
+
+        <View
+            android:layout_width="350dp"
+            android:layout_height="3dp"
+            android:id="@+id/divider"
+            android:layout_below="@+id/overview"
+            android:layout_centerHorizontal="true"
+            android:layout_centerVertical="true"
+            android:background="@android:color/black"/>
+
+        <Button
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:id="@+id/play"
+            android:layout_below="@+id/overview"
+            android:text="play trailer"/>
 
     </RelativeLayout>
 </android.support.v4.widget.NestedScrollView>
