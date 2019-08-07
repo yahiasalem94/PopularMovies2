@@ -43,6 +43,7 @@ public class MainActivity extends AppCompatActivity implements MoviesAdapter.Mov
 
     private TextView mErrorMessageDisplay;
     private ProgressBar mLoadingIndicator;
+    private  Spinner spinner;
 
     private boolean isConnected = true;
 
@@ -55,6 +56,11 @@ public class MainActivity extends AppCompatActivity implements MoviesAdapter.Mov
 
     private AppDatabase mDb;
 
+    private static final String CATEGORY_ID = "category";
+    private static final int DEFAULT_CATEGORY = 0;
+
+    private int category = 0;
+
     private static final String TAG = MainActivity.class.getSimpleName();
 
 
@@ -63,6 +69,11 @@ public class MainActivity extends AppCompatActivity implements MoviesAdapter.Mov
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
+        if (savedInstanceState != null && savedInstanceState.containsKey(CATEGORY_ID)) {
+
+            category = savedInstanceState.getInt(CATEGORY_ID, DEFAULT_CATEGORY);
+            Log.d(TAG, "savedInstanceState not null" + " " + category+"");
+        }
         // get the reference of RecyclerView
         mRecyclerView = findViewById(R.id.recyclerView);
 
@@ -83,7 +94,8 @@ public class MainActivity extends AppCompatActivity implements MoviesAdapter.Mov
 
         mDb = AppDatabase.getInstance(getApplicationContext());
 
-        loadData(0);
+        Log.d(TAG, "After savedInstance category is" + " "+category+"");
+        loadData();
 
 
     }
@@ -98,12 +110,13 @@ public class MainActivity extends AppCompatActivity implements MoviesAdapter.Mov
         return noOfColumns;
     }
 
-    private void loadData(int i) {
+    private void loadData() {
         showDataView();
-
+        Log.d(TAG, "Loading data with category" + " " + category+"");
         mLoadingIndicator.setVisibility(View.VISIBLE);
 
-        if ( i == 0 ) {
+        if ( category == 0 ) {
+            Log.d(TAG, "Loading Popular movies");
             Call<MoviesList> call = apiService.getTopRatedMovies(Constants.API_KEY);
 
             call.enqueue(new Callback<MoviesList>() {
@@ -129,8 +142,8 @@ public class MainActivity extends AppCompatActivity implements MoviesAdapter.Mov
 
                 }
             });
-        } else if ( i == 1 ) {
-
+        } else if ( category == 1 ) {
+            Log.d(TAG, "Loading TopRated movies");
             Call<MoviesList> call = apiService.getPopularMovies(Constants.API_KEY);
             call.enqueue(new Callback<MoviesList>() {
                 @Override
@@ -157,10 +170,18 @@ public class MainActivity extends AppCompatActivity implements MoviesAdapter.Mov
 
                 }
             });
-        } else if (i == 2) {
+        } else if (category == 2) {
+            Log.d(TAG, "Loading Favorites movies");
             retrieveTasks();
         }
 
+    }
+
+    @Override
+    protected void onSaveInstanceState(Bundle outState) {
+        outState.putInt(CATEGORY_ID, category);
+        Log.d(TAG, "savedInstanceState");
+        super.onSaveInstanceState(outState);
     }
 
     private void retrieveTasks() {
@@ -216,18 +237,22 @@ public class MainActivity extends AppCompatActivity implements MoviesAdapter.Mov
         getMenuInflater().inflate(R.menu.menu_main, menu);
 
         MenuItem item = menu.findItem(R.id.spinner);
-        Spinner spinner = (Spinner) item.getActionView();
+        spinner = (Spinner) item.getActionView();
 
         ArrayAdapter<CharSequence> adapter = ArrayAdapter.createFromResource(this,
                 R.array.sortBy, android.R.layout.simple_spinner_item);
         adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
         spinner.setAdapter(adapter);
 
+        Log.d(TAG, "Setting spinner selection with" + " "+ category);
+        spinner.setSelection(category);
+
         spinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
             @Override
             public void onItemSelected(AdapterView<?> adapterView, View view, int i, long l) {
                 isFavorites = (i == 2) ? true : false;
-                loadData(i);
+                category = i;
+                loadData();
             }
 
             @Override

@@ -1,17 +1,24 @@
 package com.example.android.popularmovies2;
 
+import android.arch.lifecycle.LiveData;
+import android.arch.lifecycle.Observer;
 import android.content.Intent;
 import android.net.Uri;
 import android.os.Bundle;
+import android.support.annotation.Nullable;
 import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.Snackbar;
 import android.support.v7.app.AppCompatActivity;
+import android.support.v7.widget.GridLayoutManager;
+import android.support.v7.widget.LinearLayoutManager;
+import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.Toolbar;
 import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.example.android.popularmovies2.Database.AppDatabase;
 import com.example.android.popularmovies2.Model.MovieData;
@@ -30,7 +37,7 @@ import retrofit2.Call;
 import retrofit2.Callback;
 import retrofit2.Response;
 
-public class MovieDetail extends AppCompatActivity {
+public class MovieDetail extends AppCompatActivity implements TrailersAdapter.TrailersAdapterOnClickHandler {
 
     private ImageView posterImage;
     private TextView title;
@@ -38,15 +45,21 @@ public class MovieDetail extends AppCompatActivity {
     private TextView rating;
     private TextView overview;
     private Button addToFavorite;
+    private RecyclerView mRecyclerView;
 
     private Button button;
     private String key;
 
     private MovieData movie;
+    private TrailersAdapter trailersAdapter;
+    private ArrayList<Trailer> trailersList;
+
+    private boolean isFavorite = false;
 
     private static final String TAG = MovieDetail.class.getSimpleName();
 
     private static final String totalVotes = "/10";
+
 
     private AppDatabase mDb;
 
@@ -62,27 +75,20 @@ public class MovieDetail extends AppCompatActivity {
         rating = findViewById(R.id.ratingTextview);
         overview = findViewById(R.id.overview);
         addToFavorite = findViewById(R.id.addToFavorite);
-
-        button = findViewById(R.id.play);
+        mRecyclerView = findViewById(R.id.recyclerViewTrailers);
 
         mDb = AppDatabase.getInstance(getApplicationContext());
+
+        LinearLayoutManager linearLayoutManager = new LinearLayoutManager(getApplicationContext());
+        mRecyclerView.setLayoutManager(linearLayoutManager); // set LayoutManager to RecyclerView
+
+
+        trailersAdapter = new TrailersAdapter(this, this);
 
         addToFavorite.setOnClickListener(new View.OnClickListener() {
 
             public void onClick(View v) {
-
                addToFavorite();
-
-            }
-        });
-
-        button.setOnClickListener(new View.OnClickListener() {
-
-            public void onClick(View v) {
-
-                startActivity(new Intent(Intent.ACTION_VIEW, Uri.parse("http://www.youtube.com/watch?v="+key)));
-                Log.i("Video", "Video Playing....");
-
             }
         });
 
@@ -106,14 +112,52 @@ public class MovieDetail extends AppCompatActivity {
             Log.d("MovieDetail", movie.getId()+"");
         }
 
+        checkIfFavorite();
         loadTrailers();
+        mRecyclerView.setAdapter(trailersAdapter);
+
+    }
+
+    private void checkIfFavorite() {
+        Log.d(TAG, "Actively retrieving the tasks from the DataBase");
+        LiveData<MovieData> favoriteMovie = mDb.movieDao().loadMovie(movie.getId());
+
+        favoriteMovie.observe(this, new Observer<MovieData>() {
+            @Override
+            public void onChanged(@Nullable MovieData favorite) {
+                Log.d(TAG, "Receiving database update from LiveData");
+                   if (favorite != null) {
+                       isFavorite = true;
+                   } else {
+                       isFavorite = false;
+                   }
+            }
+        });
     }
 
     private void addToFavorite() {
         AppExecutors.getInstance().diskIO().execute(new Runnable() {
             @Override
             public void run() {
-                mDb.movieDao().insertMovie(movie);
+
+                if (isFavorite) {
+                    mDb.movieDao().deleteMovie(movie);
+                    runOnUiThread(new Runnable() {
+                        @Override
+                        public void run() {
+                            Toast.makeText(getApplicationContext(), "Movie removed from favorites", Toast.LENGTH_SHORT).show();
+                        }
+                    });
+                } else {
+                    mDb.movieDao().insertMovie(movie);
+                    runOnUiThread(new Runnable() {
+                        @Override
+                        public void run() {
+                            Toast.makeText(getApplicationContext(), "Movie added to favorites", Toast.LENGTH_SHORT).show();
+                        }
+                    });
+                }
+
             }
         });
     }
@@ -128,9 +172,10 @@ public class MovieDetail extends AppCompatActivity {
             @Override
             public void onResponse(Call<TrailersList> call, Response<TrailersList> response) {
 
-                ArrayList<Trailer> trailers = (ArrayList) response.body().getResults();
-                key = trailers.get(0).getKey();
-                Log.d(TAG, "Number of movies received: " + trailers.get(0).getKey());
+                trailersList = (ArrayList) response.body().getResults();
+                trailersAdapter.setTrailers(trailersList);
+                key = trailersList.get(0).getKey();
+                Log.d(TAG, "Number of movies received: " + trailersList.get(0).getKey());
             }
 
             @Override
@@ -138,5 +183,12 @@ public class MovieDetail extends AppCompatActivity {
                 Log.e(TAG, t.toString());
             }
         });
+    }
+
+    @Override
+    public void onClick(int position) {
+
+        startActivity(new Intent(Intent.ACTION_VIEW, Uri.parse(Constants.BASE_YOUTUBE_URL+trailersList.get(position).getKey())));
+        Log.i("Video", "Video Playing....");
     }
 }
