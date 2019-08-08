@@ -16,4 +16,6 @@ public class Constants {
     public static final String TOP_RATED_MOVIES =
             "http://api.themoviedb.org/3/movie/top_rated?api_key=" + API_KEY;
 
+    public static final String BASE_YOUTUBE_URL = "http://www.youtube.com/watch?v=";
+
 }
