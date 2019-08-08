@@ -16,7 +16,7 @@
         <LinearLayout
             android:id="@+id/linearLayout"
             android:layout_width="match_parent"
-            android:layout_height="170dp"
+            android:layout_height="130dp"
             android:background="@android:color/holo_blue_light"
             android:elevation="10dp">
 
@@ -84,7 +84,7 @@
             android:layout_below="@+id/relativeLayout"
             android:layout_marginLeft="20dp"
             android:layout_marginTop="15dp"
-            android:layout_marginBottom="10dp"
+            android:layout_marginBottom="15dp"
             android:textSize="18sp"/>
 
         <View
@@ -100,6 +100,8 @@
             android:id="@+id/recyclerViewReviews"
             android:layout_height="match_parent"
             android:layout_width="match_parent"
+            android:layout_marginBottom="15dp"
+            android:layout_marginTop="15dp"
             android:layout_below="@+id/divider"/>
 
         <View
@@ -115,6 +117,7 @@
             android:id="@+id/recyclerViewTrailers"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
+            android:layout_marginTop="15dp"
             android:layout_below="@+id/divider_1"/>
 
     </RelativeLayout>
