@@ -2,6 +2,7 @@ package com.example.android.popularmovies2.Utils;
 
 import com.example.android.popularmovies2.Model.MovieData;
 import com.example.android.popularmovies2.Model.MoviesList;
+import com.example.android.popularmovies2.Model.ReviewList;
 import com.example.android.popularmovies2.Model.Trailer;
 import com.example.android.popularmovies2.Model.TrailersList;
 
@@ -24,4 +25,7 @@ public interface ApiInterface {
 
     @GET("movie/{id}/videos")
     Call<TrailersList> getTrailer(@Path("id") int id, @Query("api_key") String apiKey);
+
+    @GET("movie/{id}/reviews")
+    Call<ReviewList> getReviews(@Path("id") int id, @Query("api_key") String apiKey);
 }

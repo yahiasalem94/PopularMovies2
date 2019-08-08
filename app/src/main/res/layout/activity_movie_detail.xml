@@ -60,18 +60,21 @@
                 android:layout_marginLeft="30dp"
                 android:textSize="20sp" />
 
-            <Button
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
+            <ToggleButton
                 android:id="@+id/addToFavorite"
+                android:layout_width="60dp"
+                android:layout_height="60dp"
+                android:background="@drawable/button_favorite"
                 android:layout_toRightOf="@+id/posterImageview"
                 android:layout_below="@+id/ratingTextview"
                 android:layout_marginTop="35dp"
                 android:layout_marginLeft="30dp"
                 android:padding="10dp"
-                android:text="Mark As &#10;Favorite"
-                android:textColor="@android:color/white"
-                android:background="#1dade2"/>
+                android:checked="false"
+                android:text=""
+                android:textOff=""
+                android:textOn=""/>
+
         </RelativeLayout>
 
         <TextView
@@ -93,12 +96,26 @@
             android:layout_centerVertical="true"
             android:background="@android:color/black"/>
 
+        <android.support.v7.widget.RecyclerView
+            android:id="@+id/recyclerViewReviews"
+            android:layout_height="match_parent"
+            android:layout_width="match_parent"
+            android:layout_below="@+id/divider"/>
+
+        <View
+            android:layout_width="350dp"
+            android:layout_height="3dp"
+            android:id="@+id/divider_1"
+            android:layout_below="@+id/recyclerViewReviews"
+            android:layout_centerHorizontal="true"
+            android:layout_centerVertical="true"
+            android:background="@android:color/black"/>
 
         <android.support.v7.widget.RecyclerView
             android:id="@+id/recyclerViewTrailers"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
-            android:layout_below="@+id/divider"/>
+            android:layout_below="@+id/divider_1"/>
 
     </RelativeLayout>
 </android.support.v4.widget.NestedScrollView>

@@ -16,13 +16,17 @@ import android.support.v7.widget.Toolbar;
 import android.util.Log;
 import android.view.View;
 import android.widget.Button;
+import android.widget.ExpandableListView;
 import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
+import android.widget.ToggleButton;
 
 import com.example.android.popularmovies2.Database.AppDatabase;
 import com.example.android.popularmovies2.Model.MovieData;
 import com.example.android.popularmovies2.Model.MoviesList;
+import com.example.android.popularmovies2.Model.Review;
+import com.example.android.popularmovies2.Model.ReviewList;
 import com.example.android.popularmovies2.Model.Trailer;
 import com.example.android.popularmovies2.Model.TrailersList;
 import com.example.android.popularmovies2.Utils.ApiInterface;
@@ -31,6 +35,7 @@ import com.squareup.picasso.Picasso;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 
 import retrofit2.Call;
@@ -44,15 +49,18 @@ public class MovieDetail extends AppCompatActivity implements TrailersAdapter.Tr
     private TextView releaseDate;
     private TextView rating;
     private TextView overview;
-    private Button addToFavorite;
+    private ToggleButton addToFavorite;
     private RecyclerView mRecyclerView;
+    private RecyclerView mReviewsRecyclerView;
 
-    private Button button;
-    private String key;
+    private TrailersAdapter trailersAdapter;
+    private ReviewsAdapter reviewsAdapter;
 
     private MovieData movie;
-    private TrailersAdapter trailersAdapter;
+
+
     private ArrayList<Trailer> trailersList;
+    private ArrayList<Review> reviewsList;
 
     private boolean isFavorite = false;
 
@@ -62,6 +70,7 @@ public class MovieDetail extends AppCompatActivity implements TrailersAdapter.Tr
 
 
     private AppDatabase mDb;
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -76,14 +85,22 @@ public class MovieDetail extends AppCompatActivity implements TrailersAdapter.Tr
         overview = findViewById(R.id.overview);
         addToFavorite = findViewById(R.id.addToFavorite);
         mRecyclerView = findViewById(R.id.recyclerViewTrailers);
+        mReviewsRecyclerView = findViewById(R.id.recyclerViewReviews);
 
         mDb = AppDatabase.getInstance(getApplicationContext());
+
+
+
 
         LinearLayoutManager linearLayoutManager = new LinearLayoutManager(getApplicationContext());
         mRecyclerView.setLayoutManager(linearLayoutManager); // set LayoutManager to RecyclerView
 
+        LinearLayoutManager linearLayoutManagerReviews = new LinearLayoutManager(getApplicationContext());
+        mReviewsRecyclerView.setLayoutManager(linearLayoutManagerReviews);
+
 
         trailersAdapter = new TrailersAdapter(this, this);
+        reviewsAdapter = new ReviewsAdapter( this);
 
         addToFavorite.setOnClickListener(new View.OnClickListener() {
 
@@ -113,9 +130,11 @@ public class MovieDetail extends AppCompatActivity implements TrailersAdapter.Tr
         }
 
         checkIfFavorite();
+        loadReviews();
         loadTrailers();
-        mRecyclerView.setAdapter(trailersAdapter);
 
+        mRecyclerView.setAdapter(trailersAdapter);
+        mReviewsRecyclerView.setAdapter(reviewsAdapter);
     }
 
     private void checkIfFavorite() {
@@ -128,8 +147,10 @@ public class MovieDetail extends AppCompatActivity implements TrailersAdapter.Tr
                 Log.d(TAG, "Receiving database update from LiveData");
                    if (favorite != null) {
                        isFavorite = true;
+                       addToFavorite.setChecked(isFavorite);
                    } else {
                        isFavorite = false;
+                       addToFavorite.setChecked(isFavorite);
                    }
             }
         });
@@ -141,23 +162,50 @@ public class MovieDetail extends AppCompatActivity implements TrailersAdapter.Tr
             public void run() {
 
                 if (isFavorite) {
+                    isFavorite = false;
                     mDb.movieDao().deleteMovie(movie);
                     runOnUiThread(new Runnable() {
                         @Override
                         public void run() {
                             Toast.makeText(getApplicationContext(), "Movie removed from favorites", Toast.LENGTH_SHORT).show();
+                            addToFavorite.setChecked(isFavorite);
                         }
                     });
                 } else {
+                    isFavorite = true;
                     mDb.movieDao().insertMovie(movie);
                     runOnUiThread(new Runnable() {
                         @Override
                         public void run() {
                             Toast.makeText(getApplicationContext(), "Movie added to favorites", Toast.LENGTH_SHORT).show();
+                            addToFavorite.setChecked(isFavorite);
                         }
                     });
                 }
 
+            }
+        });
+    }
+
+    private void loadReviews() {
+
+        ApiInterface apiService = NetworkUtils.getRetrofitInstance().create(ApiInterface.class);
+
+        Log.d(TAG, "key is" + " " + movie.getId());
+        Call<ReviewList> call = apiService.getReviews(movie.getId(), Constants.API_KEY);
+
+        call.enqueue(new Callback<ReviewList>() {
+            @Override
+            public void onResponse(Call<ReviewList> call, Response<ReviewList> response) {
+
+                reviewsList = (ArrayList) response.body().getResults();
+                Log.d(TAG, reviewsList.get(0).getAuthor() + " " + reviewsList.get(0).getComment());
+                reviewsAdapter.setReviews(reviewsList);
+            }
+
+            @Override
+            public void onFailure(Call<ReviewList> call, Throwable t) {
+                Log.e(TAG, t.toString());
             }
         });
     }
@@ -174,8 +222,6 @@ public class MovieDetail extends AppCompatActivity implements TrailersAdapter.Tr
 
                 trailersList = (ArrayList) response.body().getResults();
                 trailersAdapter.setTrailers(trailersList);
-                key = trailersList.get(0).getKey();
-                Log.d(TAG, "Number of movies received: " + trailersList.get(0).getKey());
             }
 
             @Override
