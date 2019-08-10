@@ -7,17 +7,14 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.View.OnClickListener;
 import android.view.ViewGroup;
-import android.widget.ImageView;
 import android.widget.TextView;
 
-import com.example.android.popularmovies2.Model.MovieData;
 import com.example.android.popularmovies2.Model.Trailer;
-import com.squareup.picasso.Picasso;
 
 import java.util.ArrayList;
 
 
-public class TrailersAdapter extends RecyclerView.Adapter<TrailersAdapter.TrailersAdapterViewHolder> {
+public class TrailersAdapter extends RecyclerView.Adapter<TrailersAdapterViewHolder> {
 
     private ArrayList<Trailer> mTrailerData;
     private final TrailersAdapterOnClickHandler mClickHandler;
@@ -37,29 +34,13 @@ public class TrailersAdapter extends RecyclerView.Adapter<TrailersAdapter.Traile
         this.context = context;
     }
 
-    public class TrailersAdapterViewHolder extends RecyclerView.ViewHolder implements OnClickListener {
-        public final TextView trailerName;
-
-        public TrailersAdapterViewHolder(View view) {
-            super(view);
-            trailerName = view.findViewById(R.id.trailerName);
-            view.setOnClickListener(this);
-        }
-
-        @Override
-        public void onClick(View v) {
-            Log.e(TAG, getAdapterPosition()+"");
-            mClickHandler.onClick(getAdapterPosition());
-        }
-    }
-
     @Override
     public TrailersAdapterViewHolder onCreateViewHolder(ViewGroup viewGroup, int viewType) {
         Context context = viewGroup.getContext();
         LayoutInflater inflater = LayoutInflater.from(context);
 
         View view = inflater.inflate(R.layout.trailer_list_row, viewGroup, false);
-        return new TrailersAdapterViewHolder(view);
+        return new TrailersAdapterViewHolder(view, mClickHandler);
     }
 
     @Override

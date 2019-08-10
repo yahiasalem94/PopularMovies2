@@ -27,7 +27,7 @@
                 android:layout_marginLeft="20dp"
                 android:layout_marginTop="40dp"
                 android:textColor="@android:color/white"
-                android:textSize="40sp" />
+                android:textSize="@dimen/title_size" />
         </LinearLayout>
 
         <RelativeLayout
@@ -49,7 +49,7 @@
                 android:layout_toRightOf="@+id/posterImageview"
                 android:layout_marginLeft="30dp"
                 android:layout_marginTop="30dp"
-                android:textSize="25sp" />
+                android:textSize="@dimen/release_date_text_size" />
 
             <TextView
                 android:id="@+id/ratingTextview"
@@ -58,7 +58,7 @@
                 android:layout_toRightOf="@+id/posterImageview"
                 android:layout_below="@+id/releaseDateTextview"
                 android:layout_marginLeft="30dp"
-                android:textSize="20sp" />
+                android:textSize="@dimen/rating_text_size" />
 
             <ToggleButton
                 android:id="@+id/addToFavorite"
@@ -85,7 +85,7 @@
             android:layout_marginLeft="20dp"
             android:layout_marginTop="15dp"
             android:layout_marginBottom="15dp"
-            android:textSize="18sp"/>
+            android:textSize="@dimen/overview_text_size"/>
 
         <View
             android:layout_width="350dp"

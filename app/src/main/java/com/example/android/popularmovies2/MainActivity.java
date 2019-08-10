@@ -4,9 +4,10 @@ import android.arch.lifecycle.LiveData;
 import android.arch.lifecycle.Observer;
 import android.content.Context;
 import android.content.Intent;
+import android.os.Bundle;
+import android.os.Parcelable;
 import android.support.annotation.Nullable;
 import android.support.v7.app.AppCompatActivity;
-import android.os.Bundle;
 import android.support.v7.widget.GridLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.util.DisplayMetrics;
@@ -19,7 +20,6 @@ import android.widget.ArrayAdapter;
 import android.widget.ProgressBar;
 import android.widget.Spinner;
 import android.widget.TextView;
-
 
 import com.example.android.popularmovies2.Database.AppDatabase;
 import com.example.android.popularmovies2.Model.MovieData;
@@ -61,6 +61,12 @@ public class MainActivity extends AppCompatActivity implements MoviesAdapter.Mov
 
     private int category = 0;
 
+    private static Bundle mBundleRecyclerViewState;
+
+    private final String KEY_RECYCLER_STATE = "recycler_state";
+    private  Parcelable listState;
+    private  GridLayoutManager gridLayoutManager;
+
     private static final String TAG = MainActivity.class.getSimpleName();
 
 
@@ -69,6 +75,7 @@ public class MainActivity extends AppCompatActivity implements MoviesAdapter.Mov
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
+        Log.d(TAG, "onCreate");
         if (savedInstanceState != null && savedInstanceState.containsKey(CATEGORY_ID)) {
 
             category = savedInstanceState.getInt(CATEGORY_ID, DEFAULT_CATEGORY);
@@ -81,7 +88,7 @@ public class MainActivity extends AppCompatActivity implements MoviesAdapter.Mov
         mErrorMessageDisplay = findViewById(R.id.tv_error_message_display);
 
         // set a GridLayoutManager with default vertical orientation and 2 number of columns
-        GridLayoutManager gridLayoutManager = new GridLayoutManager(getApplicationContext(),calculateNoOfColumns(this));
+        gridLayoutManager = new GridLayoutManager(getApplicationContext(),calculateNoOfColumns(this));
         mRecyclerView.setLayoutManager(gridLayoutManager); // set LayoutManager to RecyclerView
 
         //  call the constructor of MoviesAdapter to send the reference and data to Adapter
@@ -94,11 +101,11 @@ public class MainActivity extends AppCompatActivity implements MoviesAdapter.Mov
 
         mDb = AppDatabase.getInstance(getApplicationContext());
 
-        Log.d(TAG, "After savedInstance category is" + " "+category+"");
         loadData();
 
 
     }
+
 
     public static int calculateNoOfColumns(Context context) {
         DisplayMetrics displayMetrics = context.getResources().getDisplayMetrics();
@@ -112,11 +119,9 @@ public class MainActivity extends AppCompatActivity implements MoviesAdapter.Mov
 
     private void loadData() {
         showDataView();
-        Log.d(TAG, "Loading data with category" + " " + category+"");
         mLoadingIndicator.setVisibility(View.VISIBLE);
 
         if ( category == 0 ) {
-            Log.d(TAG, "Loading Popular movies");
             Call<MoviesList> call = apiService.getTopRatedMovies(Constants.API_KEY);
 
             call.enqueue(new Callback<MoviesList>() {
@@ -126,7 +131,7 @@ public class MainActivity extends AppCompatActivity implements MoviesAdapter.Mov
                     movies = (ArrayList) response.body().getResults();
                     mLoadingIndicator.setVisibility(View.INVISIBLE);
                     moviesAdapter.setMoviesData(movies);
-                    Log.d(TAG, "Movie Id: " + movies.get(1).getId());
+                    mRecyclerView.getLayoutManager().onRestoreInstanceState(listState);
                 }
 
                 @Override
@@ -143,18 +148,16 @@ public class MainActivity extends AppCompatActivity implements MoviesAdapter.Mov
                 }
             });
         } else if ( category == 1 ) {
-            Log.d(TAG, "Loading TopRated movies");
             Call<MoviesList> call = apiService.getPopularMovies(Constants.API_KEY);
             call.enqueue(new Callback<MoviesList>() {
                 @Override
                 public void onResponse(Call<MoviesList> call, Response<MoviesList> response) {
 
-                     ArrayList<MovieData> movies = (ArrayList) response.body().getResults();
+                    movies = (ArrayList) response.body().getResults();
 
                     mLoadingIndicator.setVisibility(View.INVISIBLE);
-
                     moviesAdapter.setMoviesData(movies);
-                    Log.d(TAG, "Number of movies received: " + movies.size());
+                    mRecyclerView.getLayoutManager().onRestoreInstanceState(listState);
                 }
 
                 @Override
@@ -171,7 +174,6 @@ public class MainActivity extends AppCompatActivity implements MoviesAdapter.Mov
                 }
             });
         } else if (category == 2) {
-            Log.d(TAG, "Loading Favorites movies");
             retrieveTasks();
         }
 
@@ -179,9 +181,34 @@ public class MainActivity extends AppCompatActivity implements MoviesAdapter.Mov
 
     @Override
     protected void onSaveInstanceState(Bundle outState) {
+
         outState.putInt(CATEGORY_ID, category);
-        Log.d(TAG, "savedInstanceState");
+
         super.onSaveInstanceState(outState);
+    }
+
+    @Override
+    protected void onPause()
+    {
+        super.onPause();
+        Log.d(TAG, "onPause");
+        // save RecyclerView state
+        mBundleRecyclerViewState = new Bundle();
+        listState = mRecyclerView.getLayoutManager().onSaveInstanceState();
+        mBundleRecyclerViewState.putParcelable(KEY_RECYCLER_STATE, listState);
+    }
+
+    @Override
+    protected void onResume()
+    {
+        super.onResume();
+
+        Log.d(TAG, "onResume");
+        // restore RecyclerView state
+        if (mBundleRecyclerViewState != null) {
+            listState = mBundleRecyclerViewState.getParcelable(KEY_RECYCLER_STATE);
+            mRecyclerView.getLayoutManager().onRestoreInstanceState(listState);
+        }
     }
 
     private void retrieveTasks() {
@@ -194,7 +221,9 @@ public class MainActivity extends AppCompatActivity implements MoviesAdapter.Mov
                 Log.d(TAG, "Receiving database update from LiveData");
                 if (isFavorites) {
                     mLoadingIndicator.setVisibility(View.INVISIBLE);
-                    moviesAdapter.setMoviesData((ArrayList)favorites);
+                    movies = (ArrayList) favorites;
+                    moviesAdapter.setMoviesData(movies);
+                    mRecyclerView.getLayoutManager().onRestoreInstanceState(listState);
                 }
             }
         });
@@ -212,6 +241,7 @@ public class MainActivity extends AppCompatActivity implements MoviesAdapter.Mov
 
         Intent intent = new Intent(this, MovieDetail.class);
         intent.putExtra(Constants.INTENT_TAG, movies.get(position));
+        Log.d(TAG, movies.get(position).getTitle());
         startActivity(intent);
     }
 
@@ -227,7 +257,7 @@ public class MainActivity extends AppCompatActivity implements MoviesAdapter.Mov
             /* First, hide the currently visible data */
             mRecyclerView.setVisibility(View.INVISIBLE);
             /* Then, show the error */
-            mErrorMessageDisplay.setText("No Internet Connection");
+            mErrorMessageDisplay.setText(getString(R.string.no_connection));
             mErrorMessageDisplay.setVisibility(View.VISIBLE);
         }
     }
@@ -244,7 +274,6 @@ public class MainActivity extends AppCompatActivity implements MoviesAdapter.Mov
         adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
         spinner.setAdapter(adapter);
 
-        Log.d(TAG, "Setting spinner selection with" + " "+ category);
         spinner.setSelection(category);
 
         spinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {

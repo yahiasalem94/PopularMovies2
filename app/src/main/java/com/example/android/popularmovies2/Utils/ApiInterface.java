@@ -1,13 +1,8 @@
 package com.example.android.popularmovies2.Utils;
 
-import com.example.android.popularmovies2.Model.MovieData;
 import com.example.android.popularmovies2.Model.MoviesList;
 import com.example.android.popularmovies2.Model.ReviewList;
-import com.example.android.popularmovies2.Model.Trailer;
 import com.example.android.popularmovies2.Model.TrailersList;
-
-import java.util.ArrayList;
-import java.util.List;
 
 import retrofit2.Call;
 import retrofit2.http.GET;

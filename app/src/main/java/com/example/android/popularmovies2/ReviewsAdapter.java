@@ -5,20 +5,15 @@ import android.support.v7.widget.RecyclerView;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
-import android.view.View.OnClickListener;
 import android.view.ViewGroup;
-import android.widget.ImageView;
 import android.widget.TextView;
 
-import com.example.android.popularmovies2.Model.MovieData;
 import com.example.android.popularmovies2.Model.Review;
-import com.example.android.popularmovies2.Model.Trailer;
-import com.squareup.picasso.Picasso;
 
 import java.util.ArrayList;
 
 
-public class ReviewsAdapter extends RecyclerView.Adapter<ReviewsAdapter.ReviewsAdapterViewHolder> {
+public class ReviewsAdapter extends RecyclerView.Adapter<ReviewsAdapterViewHolder> {
 
     private ArrayList<Review> mReviewData;
     private Context context;
@@ -31,17 +26,6 @@ public class ReviewsAdapter extends RecyclerView.Adapter<ReviewsAdapter.ReviewsA
         this.context = context;
     }
 
-    public class ReviewsAdapterViewHolder extends RecyclerView.ViewHolder {
-        public final TextView author;
-        public final TextView comment;
-
-        public ReviewsAdapterViewHolder(View view) {
-            super(view);
-            author = view.findViewById(R.id.author);
-            comment = view.findViewById(R.id.comment);
-        }
-
-    }
 
     @Override
     public ReviewsAdapterViewHolder onCreateViewHolder(ViewGroup viewGroup, int viewType) {

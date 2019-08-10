@@ -5,6 +5,7 @@
     <string name="sort">Sort By</string>
     <string name="trailer">Trailer</string>
     <string name="reviews">Reviews</string>
+    <string name="no_connection">No Internet Connection</string>
 
     <string-array name="sortBy">
         <item>Popularity</item>

@@ -1,22 +1,13 @@
 package com.example.android.popularmovies2;
 
-import android.arch.lifecycle.LiveData;
-import android.arch.lifecycle.Observer;
 import android.content.Intent;
 import android.net.Uri;
 import android.os.Bundle;
-import android.support.annotation.Nullable;
-import android.support.design.widget.FloatingActionButton;
-import android.support.design.widget.Snackbar;
 import android.support.v7.app.AppCompatActivity;
-import android.support.v7.widget.GridLayoutManager;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
-import android.support.v7.widget.Toolbar;
 import android.util.Log;
 import android.view.View;
-import android.widget.Button;
-import android.widget.ExpandableListView;
 import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -24,7 +15,6 @@ import android.widget.ToggleButton;
 
 import com.example.android.popularmovies2.Database.AppDatabase;
 import com.example.android.popularmovies2.Model.MovieData;
-import com.example.android.popularmovies2.Model.MoviesList;
 import com.example.android.popularmovies2.Model.Review;
 import com.example.android.popularmovies2.Model.ReviewList;
 import com.example.android.popularmovies2.Model.Trailer;
@@ -33,10 +23,7 @@ import com.example.android.popularmovies2.Utils.ApiInterface;
 import com.example.android.popularmovies2.Utils.NetworkUtils;
 import com.squareup.picasso.Picasso;
 
-import java.io.IOException;
 import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
 
 import retrofit2.Call;
 import retrofit2.Callback;
@@ -90,8 +77,6 @@ public class MovieDetail extends AppCompatActivity implements TrailersAdapter.Tr
         mDb = AppDatabase.getInstance(getApplicationContext());
 
 
-
-
         LinearLayoutManager linearLayoutManager = new LinearLayoutManager(getApplicationContext());
         mRecyclerView.setLayoutManager(linearLayoutManager); // set LayoutManager to RecyclerView
 
@@ -121,12 +106,7 @@ public class MovieDetail extends AppCompatActivity implements TrailersAdapter.Tr
             rating.setText(ratingValue);
             overview.setText(movie.getOverview());
 
-            Log.d("MovieDetail", movie.getPosterPath());
-            Log.d("MovieDetail", movie.getTitle());
-            Log.d("MovieDetail", movie.getReleaseDate());
-            Log.d("MovieDetail", movie.getVoteAverage());
-            Log.d("MovieDetail", movie.getOverview());
-            Log.d("MovieDetail", movie.getId()+"");
+            Log.d(TAG, movie.getTitle());
         }
 
         checkIfFavorite();
@@ -139,19 +119,28 @@ public class MovieDetail extends AppCompatActivity implements TrailersAdapter.Tr
 
     private void checkIfFavorite() {
         Log.d(TAG, "Actively retrieving the tasks from the DataBase");
-        LiveData<MovieData> favoriteMovie = mDb.movieDao().loadMovie(movie.getId());
 
-        favoriteMovie.observe(this, new Observer<MovieData>() {
+        AppExecutors.getInstance().diskIO().execute(new Runnable() {
             @Override
-            public void onChanged(@Nullable MovieData favorite) {
-                Log.d(TAG, "Receiving database update from LiveData");
-                   if (favorite != null) {
-                       isFavorite = true;
-                       addToFavorite.setChecked(isFavorite);
-                   } else {
-                       isFavorite = false;
-                       addToFavorite.setChecked(isFavorite);
-                   }
+            public void run() {
+                MovieData favoriteMovie = mDb.movieDao().loadMovie(movie.getId());
+                if ( favoriteMovie != null ) {
+                    isFavorite = true;
+                    runOnUiThread(new Runnable() {
+                        @Override
+                        public void run() {
+                            addToFavorite.setChecked(isFavorite);
+                        }
+                    });
+                } else {
+                    isFavorite = false;
+                    runOnUiThread(new Runnable() {
+                        @Override
+                        public void run() {
+                            addToFavorite.setChecked(isFavorite);
+                        }
+                    });
+                }
             }
         });
     }

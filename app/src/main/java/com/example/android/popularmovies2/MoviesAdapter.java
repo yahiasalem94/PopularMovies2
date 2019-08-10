@@ -2,12 +2,9 @@ package com.example.android.popularmovies2;
 
 import android.content.Context;
 import android.support.v7.widget.RecyclerView;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
-import android.view.View.OnClickListener;
 import android.view.ViewGroup;
-import android.widget.ImageView;
 
 import com.example.android.popularmovies2.Model.MovieData;
 import com.squareup.picasso.Picasso;
@@ -15,7 +12,7 @@ import com.squareup.picasso.Picasso;
 import java.util.ArrayList;
 
 
-public class MoviesAdapter extends RecyclerView.Adapter<MoviesAdapter.MoviesAdapterViewHolder> {
+public class MoviesAdapter extends RecyclerView.Adapter<MoviesAdapterViewHolder> {
 
     private ArrayList<MovieData> mMoviesData;
     private final MoviesAdapterOnClickHandler mClickHandler;
@@ -28,25 +25,8 @@ public class MoviesAdapter extends RecyclerView.Adapter<MoviesAdapter.MoviesAdap
 
 
     public MoviesAdapter(MoviesAdapterOnClickHandler clickHandler, Context context) {
-        Log.d("MoviesAdapter", clickHandler.toString());
         mClickHandler = clickHandler;
         this.context = context;
-    }
-
-    public class MoviesAdapterViewHolder extends RecyclerView.ViewHolder implements OnClickListener {
-        public final ImageView mMoviePosterImageView;
-
-        public MoviesAdapterViewHolder(View view) {
-            super(view);
-            mMoviePosterImageView = view.findViewById(R.id.moviePoster);
-            view.setOnClickListener(this);
-        }
-
-        @Override
-        public void onClick(View v) {
-            Log.e("MoviesAdapter", getAdapterPosition()+"");
-            mClickHandler.onClick(getAdapterPosition());
-        }
     }
 
     @Override
@@ -55,12 +35,11 @@ public class MoviesAdapter extends RecyclerView.Adapter<MoviesAdapter.MoviesAdap
         LayoutInflater inflater = LayoutInflater.from(context);
 
         View view = inflater.inflate(R.layout.movie_list_row, viewGroup, false);
-        return new MoviesAdapterViewHolder(view);
+        return new MoviesAdapterViewHolder(view, mClickHandler);
     }
 
     @Override
     public void onBindViewHolder(MoviesAdapterViewHolder adapterViewHolder, int position) {
-        Log.d("MoviesAdapter", mMoviesData.get(position).getPosterPath());
         Picasso.get().load(Constants.IMAGE_URL+mMoviesData.get(position).getPosterPath()).into(adapterViewHolder.mMoviePosterImageView);
         adapterViewHolder.mMoviePosterImageView.setAdjustViewBounds(true);
     }
